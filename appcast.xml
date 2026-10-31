@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>PUAE</title>
+    <link>https://raw.githubusercontent.com/slioce/PUAE-Core/master/appcast.xml</link>
+    <description>PUAE core for OpenEmu: most recent version.</description>
+    <language>en</language>
+    <item>
+      <title>PUAE Version 1.0.0</title>
+      <sparkle:releaseNotesLink>https://github.com/slioce/PUAE-Core/releases/tag/v1.0.0</sparkle:releaseNotesLink>
+      <pubDate>Sat, 31 Oct 2026 14:41:17 +0100</pubDate>
+      <enclosure url="https://github.com/slioce/PUAE-Core/releases/download/v1.0.0/PUAE_1.0.0.zip" sparkle:version="1.0.0" type="application/octet-stream" length="7058995"/>
+      <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+    </item>
+  </channel>
+</rss>
