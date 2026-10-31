@@ -1,0 +1,3 @@
+[submodule "deps/libretro-uae"]
+	path = deps/libretro-uae
+	url = https://github.com/libretro/libretro-uae

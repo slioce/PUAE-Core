@@ -1,0 +1,14 @@
+# Build output
+build/
+*.o
+*.a
+
+# Per-developer settings (OpenEmu checkout location)
+Config/Local.mk
+Config/Local.xcconfig
+
+# Personal notes and planning documents
+/docs/
+.superpowers/
+
+.DS_Store
