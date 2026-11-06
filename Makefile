@@ -180,16 +180,19 @@ appcast: $(CORE_ZIP)
 
 # Publish: push the current commit, create the GitHub Release v<VERSION> with both zips attached, then
 # commit and push the appcast so that OpenEmu only sees the new version once the download exists.
+# CHANGES=<file.md> puts that file's text (what changed) right after the first line of the release notes.
 release: dist
 	@git diff --quiet && git diff --cached --quiet || { echo "Commit your changes before releasing."; exit 1; }
 	@! gh release view v$(VERSION) -R $(REPO) >/dev/null 2>&1 || { echo "v$(VERSION) is already released. Bump CFBundleVersion in Core/Info.plist and Amiga/Info.plist."; exit 1; }
+	@[ -z "$(CHANGES)" ] || [ -f "$(CHANGES)" ] || { echo "CHANGES file not found: $(CHANGES)"; exit 1; }
 	git push origin HEAD
-	printf '%s\n' \
-	  "Amiga for OpenEmu: the PUAE core and the Amiga system plugin, version $(VERSION)." "" \
+	{ printf '%s\n\n' "Amiga for OpenEmu: the PUAE core and the Amiga system plugin, version $(VERSION)."; \
+	  $(if $(CHANGES),cat "$(CHANGES)"; echo;) \
+	  printf '%s\n' \
 	  "**Install:** download and unzip \`PUAE-Core_$(VERSION).zip\`, quit OpenEmu and run \`sh PUAE-Core_$(VERSION)/install.sh\`. From then on the core updates itself through OpenEmu; after an OpenEmu update, run the script again to put the system plugin back. \`PUAE_$(VERSION).zip\` is the core alone, the file OpenEmu's updater downloads." "" \
 	  "**Requirements:** OpenEmu 2.4.1, macOS $(MINOS) or later (Intel, or Apple Silicon through Rosetta), and your own Kickstart ROMs." "" \
-	  "The core embeds libretro-uae, licensed under the GPL-2.0. Corresponding source: https://github.com/libretro/libretro-uae/tree/$$(git -C $(PUAE) rev-parse HEAD)" \
-	  > $(BUILD)/notes.md
+	  "The core embeds libretro-uae, licensed under the GPL-2.0. Corresponding source: https://github.com/libretro/libretro-uae/tree/$$(git -C $(PUAE) rev-parse HEAD)"; \
+	} > $(BUILD)/notes.md
 	gh release create v$(VERSION) -R $(REPO) --title "PUAE-Core $(VERSION)" --notes-file $(BUILD)/notes.md $(FULL_ZIP) $(CORE_ZIP)
 	sh tools/make-appcast.sh "$(VERSION)" "$(REPO)" "$(CORE_ZIP)" "$(MINOS)" > appcast.xml
 	git add appcast.xml

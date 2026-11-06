@@ -78,10 +78,10 @@ Known limitations:
 
 ```sh
 make dist      # build/PUAE-Core_<version>.zip (both bundles + install.sh) and build/PUAE_<version>.zip (core only)
-make release   # push, GitHub Release v<version> with both zips, then appcast.xml committed and pushed
+make release CHANGES=changes.md   # push, GitHub Release v<version> with both zips, then appcast.xml committed and pushed
 ```
 
-The version is `CFBundleVersion` in `Core/Info.plist` (the Makefile reads it from there); bump it, and the same key in `Amiga/Info.plist`, before `make release`. OpenEmu's core updater extracts the whole zip into its Cores folder and takes the first entry as the plugin, so the appcast points at the core-only zip. The system plugin cannot be updated by OpenEmu; users rerun `install.sh` when it changes or after an OpenEmu update. OpenEmu caches a failed appcast fetch for 5 minutes (raw.githubusercontent `max-age`).
+The version is `CFBundleVersion` in `Core/Info.plist` (the Makefile reads it from there); bump it, and the same key in `Amiga/Info.plist`, before `make release`. `CHANGES` (optional) is a Markdown file with what changed, placed near the top of the release notes. Keep it outside the tree, and say there when users have to rerun `install.sh` because the system plugin changed. OpenEmu's update dialog links to the release page. OpenEmu's core updater extracts the whole zip into its Cores folder and takes the first entry as the plugin, so the appcast points at the core-only zip. The system plugin cannot be updated by OpenEmu; users rerun `install.sh` when it changes or after an OpenEmu update. OpenEmu caches a failed appcast fetch for 5 minutes (raw.githubusercontent `max-age`).
 
 ## Debugging
 
