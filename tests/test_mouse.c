@@ -76,6 +76,39 @@ static void test_scale_to_amiga_pointer_units(void)
     scale(&lores, 3, 3, 360, 287, 3, 3);
 }
 
+static void relative(puae_mouse_tracker *t, int dx, int dy, unsigned w, unsigned h, int ex, int ey)
+{
+    int ax = 99, ay = 99;
+    puae_mouse_relative(t, dx, dy, w, h, &ax, &ay);
+    if (ax != ex || ay != ey) {
+        fprintf(stderr, "relative(%d,%d @%ux%u) -> (%d,%d), expected (%d,%d)\n", dx, dy, w, h, ax, ay, ex, ey);
+        test_failures++;
+    }
+}
+
+/* Deltas from the system plugin scale like absolute motion, fractions included. */
+static void test_relative_deltas_scale_to_amiga_units(void)
+{
+    puae_mouse_tracker t = { 0 };
+    relative(&t, 5, -2, 720, 287, 2, -2);
+    relative(&t, 1, 0, 720, 287, 1, 0);
+    relative(&t, 4, 4, 720, 574, 2, 2);
+}
+
+/* Once deltas arrive, the absolute points OpenEmu still sends (moves and clicks) must not move the pointer. */
+static void test_relative_mode_ignores_points(void)
+{
+    puae_mouse_tracker t = { 0 };
+    track(&t, 10, 10, 0, 0);
+    track(&t, 15, 8, 5, -2);
+    relative(&t, 2, 0, 720, 287, 1, 0);
+    track(&t, 20, 8, 0, 0);
+    track(&t, 21, 8, 0, 0);
+    puae_mouse_reset(&t);
+    track(&t, 30, 8, 0, 0);
+    track(&t, 31, 8, 0, 0);
+}
+
 int main(void)
 {
     test_scale_to_amiga_pointer_units();
@@ -83,5 +116,7 @@ int main(void)
     test_reentry_jump_is_ignored();
     test_fast_but_plausible_motion_passes();
     test_reset_forgets_last_point();
+    test_relative_deltas_scale_to_amiga_units();
+    test_relative_mode_ignores_points();
     return test_report("test_mouse");
 }

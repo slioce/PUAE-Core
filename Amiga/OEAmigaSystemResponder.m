@@ -1,4 +1,5 @@
 #import "OEAmigaSystemResponder.h"
+#import "OEAmigaPointer.h"
 
 @implementation OEAmigaSystemResponder
 @dynamic client;
@@ -29,6 +30,23 @@
 - (void)releaseEmulatorKey:(OESystemKey *)aKey
 {
     [self.client didReleaseAmigaButton:(OEAmigaButton)aKey.key forPlayer:aKey.player];
+}
+
+// Real mouse deltas from OEAmigaPointer (in the OpenEmu process) go straight to the core. Everything
+// else, including OpenEmu's own position events that follow each delta, takes the usual path.
+- (void)handleMouseEvent:(OEEvent *)event
+{
+    if (event.type != OEAmigaMouseDeltaEventType) {
+        [super handleMouseEvent:event];
+        return;
+    }
+    id<OEAmigaSystemResponderClient> client = self.client;
+    if (![client respondsToSelector:@selector(mouseMovedByX:y:)])
+        return;  // an older core: it keeps following the positions
+    OEIntPoint delta = event.locationInGameView;
+    [client performBlock:^{
+        [client mouseMovedByX:delta.x y:delta.y];
+    }];
 }
 
 - (void)mouseMovedAtPoint:(OEIntPoint)aPoint

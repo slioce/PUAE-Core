@@ -285,7 +285,8 @@ static NSString *string_from_path(const char *path)
         puae_bridge_set_joypad((unsigned)player - 1, amiga_button_ids[button], false);
 }
 
-/* OpenEmu sends absolute positions in the game screen; the Amiga mouse wants relative counts. */
+/* OpenEmu sends absolute positions in the game screen; the Amiga mouse wants relative counts. Once the
+ * system plugin sends real deltas (mouseMovedByX:y:), the tracker ignores these points. */
 - (void)moveMouseToPoint:(OEIntPoint)point
 {
     int dx, dy, amiga_dx, amiga_dy;
@@ -299,6 +300,15 @@ static NSString *string_from_path(const char *path)
 - (oneway void)mouseMovedAtPoint:(OEIntPoint)point
 {
     [self moveMouseToPoint:point];
+}
+
+- (oneway void)mouseMovedByX:(int)dx y:(int)dy
+{
+    int amiga_dx, amiga_dy;
+    const puae_bridge_video *v = puae_bridge_video_info();
+    puae_mouse_relative(&_mouse, dx, dy, v->width, v->height, &amiga_dx, &amiga_dy);
+    if (amiga_dx || amiga_dy)
+        puae_bridge_mouse_move(amiga_dx, amiga_dy);
 }
 
 /* Also sent repeatedly while dragging, carrying the new position. */

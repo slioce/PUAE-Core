@@ -32,7 +32,8 @@ BRIDGE_SRCS := Core/PUAEBridge.c Core/PUAEOptions.c Core/PUAEDiskList.c Core/PUA
 
 # Bundles and where they install.
 SYSTEM      := $(BUILD)/Amiga.oesystemplugin
-SYSTEM_SRCS := Amiga/OEAmigaSystemResponder.m Amiga/OEAmigaImportFix.m Amiga/OEAmigaBoxArt.m Amiga/OEAmigaBoxArtFetcher.m
+SYSTEM_SRCS := Amiga/OEAmigaSystemResponder.m Amiga/OEAmigaImportFix.m Amiga/OEAmigaPointer.m Amiga/OEAmigaBoxArt.m \
+               Amiga/OEAmigaBoxArtFetcher.m
 SYSTEM_RES  := Amiga/Controller-Mappings.plist Amiga/Controller-Preferences.plist Amiga/Keyboard-Mappings.plist \
                Amiga/amiga_library.png Amiga/amiga_library@2x.png
 CORE        := $(BUILD)/PUAE.oecoreplugin
@@ -85,16 +86,22 @@ $(BUILD)/tests/test_%: tests/test_%.c tests/test.h $$(wildcard Core/*.h) $$(wild
 	@mkdir -p $(dir $@)
 	clang $(CFLAGS_COMMON) -O0 -Itests -o $@ $< $(wildcard $(test_$*_SRCS)) $(test_$*_LIBS)
 
-# Objective-C tests: tests/test_<name>.m linked with test_<name>_SRCS and Foundation.
-OBJC_TESTS := import_fix box_art box_art_fetcher box_art_library
+# Objective-C tests: tests/test_<name>.m linked with test_<name>_SRCS and Foundation, plus test_<name>_FLAGS
+# (and test_<name>_DEPS built first).
+OBJC_TESTS := import_fix pointer box_art box_art_fetcher box_art_library
 test_import_fix_SRCS := Amiga/OEAmigaImportFix.m
+test_pointer_SRCS    := Amiga/OEAmigaPointer.m
+test_pointer_FLAGS   := -fmodules -F $(BUILD)/Release -framework OpenEmuSystem -framework Cocoa \
+                        -Wl,-rpath,$(CURDIR)/$(BUILD)/Release
+test_pointer_DEPS    := $(BUILD)/Release/OpenEmuSystem.framework
 test_box_art_SRCS    := Amiga/OEAmigaBoxArt.m
 test_box_art_fetcher_SRCS := Amiga/OEAmigaBoxArtFetcher.m Amiga/OEAmigaBoxArt.m
 test_box_art_library_SRCS := Amiga/OEAmigaBoxArtFetcher.m Amiga/OEAmigaBoxArt.m
 
-$(BUILD)/tests/test_%: tests/test_%.m tests/test.h $$(wildcard $$(test_%_SRCS))
+$(BUILD)/tests/test_%: tests/test_%.m tests/test.h $$(wildcard Amiga/*.h) $$(wildcard $$(test_%_SRCS)) $$(test_%_DEPS)
 	@mkdir -p $(dir $@)
-	clang $(CFLAGS_COMMON) -O0 -fobjc-arc -Itests -IAmiga -framework Foundation -framework CoreData -o $@ $< $(wildcard $(test_$*_SRCS))
+	clang $(CFLAGS_COMMON) -O0 -fobjc-arc -Itests -IAmiga -framework Foundation -framework CoreData $(test_$*_FLAGS) \
+	  -o $@ $< $(wildcard $(test_$*_SRCS))
 
 test: $(TESTS:%=$(BUILD)/tests/test_%) $(OBJC_TESTS:%=$(BUILD)/tests/test_%)
 	@status=0; for t in $^; do $$t || status=1; done; exit $$status

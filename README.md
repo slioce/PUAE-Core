@@ -6,7 +6,7 @@ Amiga support for [OpenEmu](https://openemu.org): an Amiga system plugin and a c
 
 - **Floppy, hard disk and WHDLoad games**: `.adf`, `.hdf` and WHDLoad `.lha` archives. PUAE picks the Amiga model from the file type and name: an A500 for floppies, an A1200 for WHDLoad and hard disks, or the model named in the file name, such as `(A1200)`, `AGA` or `(A600)`. Without the matching Kickstart the game refuses to load, instead of booting on PUAE's built-in replacement ROM.
 - **Multi-disk games** found by name: `Game_Disk2.adf`, `Game (Disk 2 of 4).adf` and `Game Disk 2.adf` join disk 1 as a set, and the HUD's disc menu swaps disks. A hand-written `.m3u` next to the game takes precedence, for save disks or odd names.
-- **Gamepad, mouse and keyboard.** The joystick on the pad, Fire and Fire 2 on the buttons, the mouse where the game needs a mouse, and the keyboard stays an Amiga keyboard, so Shift, Return, the function keys and the rest reach the game.
+- **Gamepad, mouse and keyboard.** The joystick on the pad, Fire and Fire 2 on the buttons, the mouse where the game needs a mouse, and the keyboard stays an Amiga keyboard, so Shift, Return, the function keys and the rest reach the game. Over an Amiga game the Mac cursor hides, so only the game's own pointer shows, and it follows the real mouse motion, even at the edges of the screen.
 - **Turbo floppy loading** by default (no disk-rotation emulation, which halves load times). Floppy Speed in the in-game display-mode menu switches to Normal, 2x, 4x or 8x for the rare loader that needs real timing.
 - **Save states**, and saves that persist: WHDLoad saves and writes to floppies land in OpenEmu's battery-saves folder for the core, so the original images stay untouched.
 - **Box art and titles.** OpenEmu's database has no Amiga games, so the system plugin fetches covers and proper titles from the libretro thumbnail server after an import, when the file name matches a known game.
@@ -87,7 +87,8 @@ make install      # both bundles into OpenEmu (quit OpenEmu first)
 
 ```
 Amiga/              The system plugin: file types, controls, the responder that forwards gamepad,
-                    keyboard and mouse to the core, the import fix and the box art fetcher.
+                    keyboard and mouse to the core, the mouse pointer fix, the import fix and the
+                    box art fetcher.
 Core/               The core plugin: PUAEGameCore (OEGameCore) over PUAEBridge, a minimal libretro
                     frontend, plus options, disk sets, keymap, mouse and floppy speed as plain C.
 tests/              Unit tests (make test).
@@ -109,7 +110,7 @@ Releases are built on a Mac, not in CI: the build needs an OpenEmu checkout, and
 
 ## Debugging
 
-The core logs through `os_log` under the subsystem `org.openemu.PUAE` (PUAE's own log: model, `Kickstart: "…"`, WHDLoad) and the system plugin under `org.openemu.Amiga` (category `boxart` for covers). The core runs inside `OpenEmuHelperApp`:
+The core logs through `os_log` under the subsystem `org.openemu.PUAE` (PUAE's own log: model, `Kickstart: "…"`, WHDLoad) and the system plugin under `org.openemu.Amiga` (category `boxart` for covers, `pointer` for the mouse pointer). The core runs inside `OpenEmuHelperApp`:
 
 ```sh
 /usr/bin/log show --last 10m --style compact --info --debug \
@@ -124,6 +125,7 @@ For anything emulation-side, `build/puae-smoke` runs the same bridge without Ope
 - IPF images are not supported (no capsimg).
 - CD32 pad: only the two fire buttons are mapped, so CD32 games that wait for Play can't go on.
 - No rewind.
+- Mouse in a window: the hidden Mac cursor still moves on its own, so when it leaves the window or passes over the HUD, the arrow comes back and the game's pointer stops until the cursor is back over the game. Full screen has no such edge.
 
 ## Acknowledgements
 
